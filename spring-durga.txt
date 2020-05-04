@@ -1,0 +1,308 @@
+											Spring -- against EJB
+loosely coupled &
+light weight
+
+Loosely Coupled ---- Using runtime polymorphism & by using interface--Has-A relationship) we can achieve loosely coupled.
+Light weight -----  It does not require application server where EJB requires application server,application features can 
+					be provided by adding jar files.
+					
+				
+				
+				Spring is lightweight framework used to develop the web application.
+				
+RunTime Polymorphism:
+		How we can achieve runtime polymorphism?
+			Spring containers will provide object at the runtime.
+		Containers:
+			Containers will read the xml file,
+			And creates object for the bean mentioned in the xml,
+			And maintains life cycle for the bean,
+			And Dynamically injects the  object.
+			
+IOC: 
+	It contains two containers.They are:
+		Core,(Bean Factory(I)) ---> Implementation class ==> xmlbeanfactory
+		J2EE(ApplicationContext(I)) ---> implementation class ==> classpathxmlapplicationcontext
+MVC:
+	It contains one container.
+		Web(WebApplicationContext(I))
+		
+Dependency Injection:
+	Spring container will read the xml file and will create the object and will inject the object to pojo class.
+	This process is called Dependency Injection.
+	
+Servlet Init Method:
+	We will container(classpathxmlapplicationcontext) class in init method,so that it will be executed 
+	only once when deployed in tomcat. 
+Servlet service Method:	
+	This method will be executed for all the requests.
+	
+BeanScopes ==> singleton,prototype,request,session,context(global.)
+
+
+xmlbeanfactory vs classpathxmlapplicationcontext
+
+xmlbeanfactory is lazy container where it will create objects for all the beans only when they are called.
+classpathxmlapplicationcontext is early/eager container where it will create objects for all the beans while loading itself 
+only when beanscope is singleton.
+
+ClassPathXMLApplicationContext is the best approach.
+Reason:
+		In case of xmlbeanfactory,Some classes will take 10 minutes to create object ,if the object is created only when the 
+		user is	hitting a particular url then he has to wait for 10 minutes.
+		In case of classpathxmlapplicationcontext,10 * 100 => 1000 minutes ,it will create all objects while deploying itself
+		so the user will not face any delay while consuming.
+SaxParser will parse the spring xml file.
+
+Setters & Constructors in xml file:
+			setters ==>		<property name=" " value=" "/ref=" ">
+			Contructor ==> <contructor-arg value=" "/ref=" " index = "0" type ="int"/>
+	<property name="nameList">
+		<util:list list-class="com....LinkedList">
+			<value>jk</value>
+			<value>jai</value>
+			<value>kumar</value>
+		</util:list>
+	</property>
+
+	<property name="nameList">
+		<util:set set-class="com....HashSet">
+			<value>jk</value>
+			<value>jai</value>
+			<value>kumar</value>
+		</util:set>
+	</property>
+	
+	<property name="nameMap">
+		<util:map map-class="com....LinkedHashMap">
+			<entry key="" value="" />
+			<entry key="" value="" />
+			<entry key="" value="" />
+		</util:map>
+	</property>
+	
+
+Types of Dependency Injection:
+		Setter Injection,
+		Constructor Injection.
+		
+		While Creating object using constructor injection it is compulsory to pass all the parameters defined in the constructor.
+But in Setter injection it is not compulsory.
+		To make it compulsory,we need to use "Dependency-Check" attribute.
+		Ex:<bean id="t" class="com.package.test" dependency-check="none">
+		By default it will be none.
+		Different values that can be passed are:
+			none,
+			simple, ==> all the primitives fields are compulsory
+			objects, ==> all the object ref are compulsory
+			all. ==> everything is compulsory.
+			
+Disadvantages of Dependency-Check:
+		if we set dependency-check, all the fields become compulsory.
+		Incase if we want only few fields compulsoryly and others are not mandatory then in such situation 
+		it is a big drawback.
+	To overcome this we can use @Required annotation
+
+Depends-On:
+	<bean class="A" id="a" depends-on="b">
+	<bean class="B" id="b" depends-on="c">
+	<bean class="C" id="c">
+	==> first 'c' object will be created,second 'b' and at last 'a' object will be created.
+	
+	In order to create the object in our wish,we can use "depends-on" annotation/attribute
+
+Auto Wiring	:
+	Instead of injecting dependencies manually,we can autowire it i.e spring container will inject the dependencies.
+	This auto wiring is possible for secondary data types only(object types only).
+	
+	This can be done by ---byType,byName,byConstructor,autodetect,no
+	
+	<bean class="com.package.Test" id="--" autowire="byTpe">
+	<bean class="com.package.Test1" id="--" autowire="byTpe">
+	<bean class="com.package.Test2" id="--" autowire="byTpe">
+	<bean class="com.package.Test3" id="--" autowire="byTpe">
+	
+	Instead of mentioning autowire in all beans we can declare it globally
+		<beannamespace default-autowire="byType">
+		
+	Spring container if it finds aoutwire attribute in a bean then it assumes that this bean is dependent of other objects.
+It will search the object by the type we mention and injects them.
+
+	If spring container finds two bean of a same type then we have neglect the other one by mentioning 
+	"autowire-candidate='false'".Then spring will reject that bean.
+	
+	<bean id="e" class="engine">
+	<bean id="e1" class="engine" autowire-candidate=false>
+	
+ByType ==> As mentioned above bytype has ambiguity problem.
+We can overcome this problem by using "ByName" ==> byType+referenceName(id)
+
+By Constructor:
+	Internally it use byType,
+AutoDetect:
+	Internally it uses ByType.
+	It will auromatically do setter and constructor injection.
+	
+Factory Class:
+	How to create factoryclass in spring?
+	There are three ways to create factory in spring.
+		Static method,
+		Instance method,
+		By implementing FactoryBean(I)
+	
+StaticMethod Approach:
+	public interface Car{
+		Car getCar();
+	}
+	public class car1 implements Car{
+		//implements the getCar method.
+	}
+	public class car2 implements Car{
+		//implements the getCar method.
+	}
+	
+	public class CarFactory{
+		public static Car getCar(String carType){
+				if(carType.equalsIgnorecase("Car1")){
+					return new Car1();
+				}else if(){
+				
+				}
+			}
+	}
+	public class Client{
+		public void method1(){
+			Car car = carFactory.getCar();
+		}
+	}
+	If we use normal method in the carFactory then we have create of that class to call the getCar method.
+	This way is called as "InstanceMethod".
+Instance method:	
+	public class CarFactory{
+		public Car getCar(String carType){
+				if(carType.equalsIgnorecase("Car1")){
+					return new Car1();
+				}else if(){
+				
+				}
+			}
+	}
+	public class Client{
+		public void method1(){
+			Car car = new carFactory().getCar();
+		}
+	}
+		
+By implementing FactoryBean(I):
+	
+	public class CarFactory implements FactoryBean{
+		@override
+		public Object getObject(){
+			return new Car1();
+		}
+		@override
+		public class getclass(){
+			return Car.class;
+		}
+		@override
+		public boolean isSingleton(){
+			return true;
+			// if it is set to true then only one object will created.
+		}
+	}
+
+Bean Life Cycle:	
+
+	IOC Container will create all objects while loading and will execute init method.
+	
+	There are 3 ways to define BeanLifeCycle Methods(init,destory)
+		1.By Implementing two interfaces(InitializingBean(methods to override ==> afterProperties),DisposableBean(method to override ==> destroy))
+		2.By xml (Attributes:init-method="methodNamedefined in our bean class",destroy-method="methodNameDefined in our bean class")
+		3.By Annotations (@PostContruct(initmethod),@PreDestroy(destroy))
+		
+	We should load them into ConfigurableApplicationContext instead of ApplicationContext
+	
+	We need to call the close method present in the ConfigurableApplicationContext,that will invoke all the destroy method.
+	
+	If we have 100 bean class instead of putting annotations in every class,we can declare default method in xml file.
+	Ex: <beans default-init-method="initMethod" default-destroy-method="destroyMethod">
+	    instead of
+			<bean class="com.test" id="t" init-method="initMethod" destroy-method="destroyMethod">
+			<bean class="com.test1" id="t2" init-method="initMethod" destroy-method="destroyMethod">
+			<bean class="com.test2" id="t2" init-method="initMethod" destroy-method="destroyMethod">
+			<bean class="com.test3" id="t3" init-method="initMethod" destroy-method="destroyMethod">
+			.
+			..
+			<bean class="com.test100" id="t100" init-method="initMethod" destroy-method="destroyMethod">
+
+DependencyLookUp:	
+		Instead of implementing interface we can provide implementation through spring xml.
+		<bean class="com.interface" id="i">
+			<LookUpMethod name="createEngine" bean="e"/>
+		</bean>
+			<bean class="com.package.ImplementationClass" id="e">
+			</bean>
+			
+MethodReplacer:
+		we can override a method using method-replacer
+		
+		class Bank{
+			m1();
+			m2();
+			m3();
+		}
+		
+		class newM2 implements MethodReplacer{
+			//override method
+			//provide the implementation
+		}
+	In Xml:
+		<bean class="com.bank" id="b">
+		<method-replacer name="m2" replacer="nM2">
+		</bean>
+		<bean class="com.newM2" id="nM2">
+		
+		Internal working:
+			Internally it creates proxyclass by extending the original class(Bank here) and overrides the method we 
+			want to replace.		
+Resource & Inject Annotations:(internally it will autowire by name)
+		Resource & Inject are provided by JDK
+		Both are equivalent to @AutoWired
+Named annotation provided by JDK:
+			Equivalent to @Component
+How to injec properties files into class?
+	PropertyplaceholderContext to load properties file into ioc context and give the proprty location
+	<bean class="PropertyplaceholderContext" id="p1">
+	<property name="location" value="resource/db.properties"/>	
+	</bean>	
+	
+Spring JDBC:
+	How to create Connection pool?
+		Connection pool can be created using DATASOURCE(I)
+		Different Implementation available for DATASOURCE are:
+				BasicDataSource(provided by Apache)
+				ComboPooledDataSource(provided by MChange)
+				DriverManagerDataSource(provided by Spring)
+				WebLogicDataSource(provided by WebLogic)
+				
+		BasicDataSource basicDataSource = new BasicDataSource();
+		basicDataSource.setDriverClassName("");
+		basicDataSource.setUrl("");
+		basicDataSource.setUserName("");
+		basicDataSource.setPassword("");
+		basicDataSource.setMaxActiveConnection("");==>connections in connection pool
+		basicDataSource.setMinIdle("");
+		basicDataSource.MaxWait(5); ==> No of seconds request has to wait for the connection incase if all all connections are busy 
+		
+Statement vs PreparedStatement:
+		statement ==> It is not type safe.
+		PreparedStatement ==> It is type safe.(It will throw compile time error while setting value in statement)
+		
+AOP:
+	MethodAfterAdvice(I),==> will get executed before the execution of target method
+	MethodBeforeAdvice(I),==> will get executed after the execution of target method
+	MethodInterceptor(I),==> will get executed around the target method (mi.proceed(); ==> will invoke the target method)
+		We can execute our logic and then we can invoke the target method and later we can execute the our logic
+	ThrowsAdvice(I)==> will get executed before the target method throws the exception
+	
+		
