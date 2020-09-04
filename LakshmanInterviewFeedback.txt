@@ -1,0 +1,8 @@
+Lakshman didn't have deep knowledge on spring Boot,Spring Cloud,Microservices,Jenkins pipeline. He can't handle the applications independently.
+
+spring		5/10
+springboot 	4/10,
+pcf		   	7/10,
+restservices 7/10,
+jenkins      5/10
+
